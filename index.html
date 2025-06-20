@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <title>AiBot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Oxanium:wght@200..800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="index.css" />
+    <script src=" https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js "></script>
+    <script type="module" src="main.js"></script>
+  </head>
+  <body>
+    <div class="site-header">
+      <div class="site-title">
+        <button id="nav-toggle" class="button-large">
+          <img id="nav-icon" />
+        </button>
+        <span class="header-text" style="margin-left: 2%">AiBot</span>
+      </div>
+    </div>
+    <nav id="nav">
+      <span class="subheader-text">Sessions</span>
+      <button id="new-session-button">
+        <span
+          style="
+            display: grid;
+            grid-template-columns: 32px 1fr;
+            align-items: center;
+            column-gap: 4px;
+          "
+          ><img
+            style="height: 75%"
+            src="https://raw.githubusercontent.com/microsoft/fluentui-system-icons/refs/heads/main/assets/Add/SVG/ic_fluent_add_16_regular.svg"
+          /><span>New Session</span></span
+        >
+      </button>
+      <div id="sessions-list" />
+    </nav>
+    <div id="main-area" />
+  </body>
+</html>

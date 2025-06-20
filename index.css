@@ -1,0 +1,154 @@
+:root,
+button,
+input,
+textarea {
+  font-family: "Kode Mono", monospace;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 14pt;
+}
+
+body {
+  width: 100vw;
+  height: 100vh;
+  margin: 0px;
+  display: grid;
+  grid-template-rows: 6% 1fr;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "header header" "nav body";
+}
+
+textarea {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px darkblue solid;
+  resize: none;
+}
+
+button {
+  border: none;
+  background-color: transparent;
+  transition: background-color 0.25s ease;
+  border-radius: 4px;
+  padding: 4px;
+}
+
+button:active {
+  filter: brightness(110%);
+}
+
+button:hover {
+  background-color: lightskyblue;
+}
+
+nav {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  row-gap: 8px;
+  border-right: 1px darkblue solid;
+  width: 0px;
+  background-color: aliceblue;
+  padding-left: 2px;
+  padding-right: 2px;
+  overflow: hidden;
+  transition: width 0.3s ease;
+}
+
+nav.expanded {
+  width: 20vw;
+}
+
+.button-large {
+  width: 40px;
+  height: 40px;
+}
+
+.button-normal {
+  width: 32px;
+  height: 32px;
+}
+
+button img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+nav button {
+  width: 100%;
+  height: 32px;
+  text-align: left;
+  padding-left: 8px;
+  transition: backgroud-color padding-left 0.2s ease;
+}
+
+nav button:hover {
+  padding-left: 16px;
+}
+
+.site-title {
+  display: grid;
+  grid-template-columns: 32px auto;
+  align-items: center;
+}
+
+.header-text {
+  font-weight: 500;
+  font-size: 2rem;
+}
+
+.subheader-text {
+  font-weight: 500;
+  font-size: 1.5rem;
+}
+
+.site-header {
+  grid-area: header;
+  background-color: lightblue;
+  display: grid;
+  align-items: center;
+  border-bottom: 1px darkblue solid;
+  padding-left: 8px;
+}
+
+#sessions-list {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  row-gap: 8px;
+}
+
+#main-area {
+  display: grid;
+  grid-template-rows: auto 1fr 10vh;
+  grid-template-areas: "title" "chat" "input";
+  padding: 8px;
+}
+
+.chat-title {
+  grid-area: title;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-empty {
+  grid-area: chat;
+  display: flex;
+  flex-direction: row;
+  padding-top: 8vh;
+  justify-content: space-around;
+}
+
+.chat-input-area {
+  grid-area: input;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
+
+.chat-input-area textarea {
+  width: 70%;
+}
