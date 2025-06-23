@@ -3,13 +3,14 @@
  * {
  *   [uuid]: {
  *     uuid: uuid;
- *     name: string;
- *     model: strin;
+ *     name: string | null;
+ *     model: string;
  *     createdOn: Date;
- *     context: [
+ *     messages: [
  *       {
- *          isUser: boolean;
- *          message: string;
+ *          uuid: string;
+ *          role: string;
+ *          content: string;
  *          createdOn: Date;
  *       }
  *     ];
@@ -21,6 +22,7 @@ import {
   EVENT_SESSION_CHANGE,
   EVENT_SESSION_DELETE,
   EVENT_SESSION_NEW,
+  EVENT_SESSION_UPDATE,
 } from "./events.js";
 import { LS_SESSION_ACTIVE, LS_SESSION_STORE } from "./localStoragePaths.js";
 import { getModels } from "./models.js";
@@ -72,7 +74,7 @@ export function newSession() {
     name: null,
     model: getModels()[0].name,
     createdOn: new Date(),
-    context: [],
+    messages: [],
   };
 
   sessionData[newSession.uuid] = newSession;
@@ -81,6 +83,33 @@ export function newSession() {
   document.dispatchEvent(e);
 
   return newSession;
+}
+
+export function appendToLatestChat(message, role) {
+  const s = activeSession();
+  if (!s) {
+    throw Error("Not active session");
+  }
+
+  let lastMsg = s.messages[s.messages.length - 1];
+
+  if (lastMsg?.role !== role) {
+    const newMessage = {
+      uuid: crypto.randomUUID(),
+      role,
+      content: "",
+      createdOn: new Date(),
+    };
+
+    s.messages.push(newMessage);
+    lastMsg = newMessage;
+  }
+
+  if (message) {
+    lastMsg.content = lastMsg.content.concat(message);
+    const e = new CustomEvent(EVENT_SESSION_UPDATE);
+    document.dispatchEvent(e);
+  }
 }
 
 export function deinitSessionCtl() {

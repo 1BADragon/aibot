@@ -2,10 +2,26 @@ import {
   EVENT_CHAT_AREA_UPDATE,
   EVENT_MODELS_LOADED,
   EVENT_SESSION_CHANGE,
+  EVENT_SESSION_UPDATE,
 } from "./events.js";
 import { getModels, sendChat } from "./models.js";
 import { renderNode } from "./render.js";
-import { activeSession } from "./sessionControl.js";
+import { activeSession, appendToLatestChat } from "./sessionControl.js";
+
+function parseRaw(raw) {
+  const m = new marked.Marked(
+    markedHighlight.markedHighlight({
+      emptyLangClass: "hljs",
+      langPrefix: "hljs language-",
+      highlight(code, lang, info) {
+        const language = hljs.getLanguage(lang) ? lang : "plaintext";
+        return hljs.highlight(code, { language }).value;
+      },
+    }),
+  );
+
+  return m.parse(raw);
+}
 
 function renderNoSession() {
   const e = document.createElement("div");
@@ -37,8 +53,6 @@ function renderTitle(session) {
     })
     .value();
 
-  console.log(session.model);
-
   modelSelect.replaceChildren(...modelChildren);
   modelSelect.value = session.model;
   modelSelect.onchange = (ev) => {
@@ -58,22 +72,70 @@ function renderInputArea() {
 
   e.className = "chat-input-area";
 
-  const s = document.createElement("span");
+  const inner = document.createElement("div");
 
   const textarea = document.createElement("textarea");
+  textarea.autofocus = true;
+  textarea.placeholder = "Whats up?";
+  textarea.style.border = "none";
+  textarea.style.height = "48px";
+  textarea.style.outline = "none";
+
+  textarea.onfocus = () => {
+    inner.style.outline = "solid";
+    inner.style.outlineColor = "lightblue";
+  };
+
+  textarea.onblur = () => {
+    inner.style.outline = "none";
+  };
+
   const submitButton = document.createElement("button");
+  submitButton.style.marginLeft = "auto";
   submitButton.innerText = "Submit";
-  submitButton.onclick = () => {
-    console.log(textarea.value);
-    sendChat(activeSession().model, textarea.value);
+  submitButton.onclick = async () => {
+    for await (const fragment of sendChat(
+      activeSession().model,
+      textarea.value,
+    )) {
+      appendToLatestChat(fragment.message.content, fragment.message.role);
+    }
     textarea.value = "";
   };
 
-  s.replaceChildren(textarea, submitButton);
+  inner.replaceChildren(textarea, submitButton);
 
-  e.replaceChildren(s);
+  e.replaceChildren(inner);
 
   return e;
+}
+
+function createBubbleFromMessage(msg) {
+  const bubble = document.createElement("div");
+  bubble.classList = `chat-bubble chat-bubble-${msg.role}`;
+  bubble.id = `chat-${msg.uuid}`;
+
+  const textArea = document.createElement("div");
+  textArea.innerHTML = parseRaw(msg.content);
+
+  bubble.replaceChildren(textArea);
+
+  return bubble;
+}
+
+function renderChat(session) {
+  const p = document.createElement("div");
+  p.className = "chat-bubble-area";
+  p.id = "chat-bubble-area";
+
+  const bubbles = _(session.messages).map(createBubbleFromMessage).value();
+
+  p.replaceChildren(...bubbles);
+  requestAnimationFrame(() => {
+    p.scrollTo({ top: p.scrollHeight, behavior: "smooth" });
+  });
+
+  return p;
 }
 
 function renderChatArea() {
@@ -83,7 +145,37 @@ function renderChatArea() {
     return renderNoSession();
   }
 
-  return [renderTitle(session), renderInputArea()];
+  return [renderTitle(session), renderChat(session), renderInputArea()];
+}
+
+function renderUpdatedBubble() {
+  const s = activeSession();
+
+  if (!s.messages.length) {
+    return;
+  }
+
+  const current = s.messages[s.messages.length - 1];
+
+  const bubbleArea = document.getElementById("chat-bubble-area");
+  const threshold = 20; // px tolerance
+  const doAutoScroll =
+    bubbleArea.scrollHeight - bubbleArea.scrollTop - bubbleArea.clientHeight <
+    threshold;
+
+  const bubble = document.getElementById(`chat-${current.uuid}`);
+  if (bubble) {
+    bubble.innerHTML = parseRaw(current.content);
+  } else {
+    const b = createBubbleFromMessage(current);
+    bubbleArea.appendChild(b);
+  }
+
+  if (doAutoScroll) {
+    requestAnimationFrame(() => {
+      bubbleArea.scrollTo({ top: bubbleArea.scrollHeight, behavior: "smooth" });
+    });
+  }
 }
 
 export function chatAreaInit() {
@@ -97,6 +189,10 @@ export function chatAreaInit() {
 
   document.addEventListener(EVENT_CHAT_AREA_UPDATE, () => {
     renderNode("main-area", renderChatArea);
+  });
+
+  document.addEventListener(EVENT_SESSION_UPDATE, () => {
+    renderUpdatedBubble();
   });
 
   renderNode("main-area", renderChatArea);

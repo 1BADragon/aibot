@@ -1,6 +1,12 @@
 import { EVENT_MODELS_LOADED } from "./events.js";
+import { activeSession, appendToLatestChat } from "./sessionControl.js";
 
 var models;
+var requestsInProgress = 0;
+
+export function requestInProgress() {
+  return requestsInProgress > 0;
+}
 
 export function getModels() {
   return models;
@@ -17,36 +23,41 @@ export function modelInit() {
   });
 }
 
-export function sendChat(modelName, context) {
-  fetch("http://localhost:11434/api/generate", {
+export async function* sendChat(modelName, userInput) {
+  appendToLatestChat(userInput, "user");
+
+  requestsInProgress += 1;
+
+  const response = await fetch("http://localhost:11434/api/chat", {
     method: "POST",
     body: JSON.stringify({
       model: modelName,
-      prompt: context,
+      messages: activeSession().messages,
     }),
-  }).then((response) => {
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
+  });
 
-    function processChunk({ done, value }) {
-      if (done) {
-        if (buffer) console.log("Final line:", buffer); // leftover line
-        return;
-      }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
 
-      buffer += decoder.decode(value, { stream: true });
-
-      let lines = buffer.split("\n");
-      buffer = lines.pop(); // save incomplete line for next chunk
-
-      for (const line of lines) {
-        console.log("Line:", JSON.parse(line).response);
-      }
-
-      return reader.read().then(processChunk);
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) {
+      break;
     }
 
-    return reader.read().then(processChunk);
-  });
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop(); // incomplete line
+
+    for (const line of lines) {
+      yield JSON.parse(line);
+    }
+  }
+
+  if (buffer) {
+    yield JSON.parse(buffer);
+  }
+
+  requestsInProgress -= 1;
 }

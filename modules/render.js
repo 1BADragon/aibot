@@ -14,7 +14,7 @@ export function renderNode(parent, render) {
 
   if (newChild) {
     if (Array.isArray(newChild)) {
-      node.replaceChildren(...newChild);
+      node.replaceChildren(...newChild.filter((c) => Boolean(c)));
     } else {
       node.replaceChildren(newChild);
     }

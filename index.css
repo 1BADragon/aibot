@@ -11,12 +11,17 @@ textarea {
   background-color: transparent;
 }
 
+html {
+  overflow: hidden;
+}
+
 body {
   width: 100vw;
   height: 100vh;
   margin: 0px;
   display: grid;
-  grid-template-rows: 6% 1fr;
+  overflow: hidden;
+  grid-template-rows: 48px 1fr;
   grid-template-columns: auto 1fr;
   grid-template-areas: "header header" "nav body";
 }
@@ -55,6 +60,7 @@ nav {
   grid-template-rows: auto auto 1fr;
   row-gap: 8px;
   border-right: 1px darkblue solid;
+  height: 100%;
   width: 0px;
   background-color: aliceblue;
   padding-left: 2px;
@@ -64,7 +70,7 @@ nav {
 }
 
 nav.expanded {
-  width: 20vw;
+  width: 300px;
 }
 
 .button-large {
@@ -88,7 +94,7 @@ nav button {
   height: 32px;
   text-align: left;
   padding-left: 8px;
-  transition: backgroud-color padding-left 0.2s ease;
+  transition: background-color padding-left 0.2s ease;
 }
 
 nav button:hover {
@@ -128,10 +134,13 @@ nav button:hover {
 }
 
 #main-area {
+  height: 100%;
   display: grid;
-  grid-template-rows: auto 1fr 10vh;
+  grid-template-rows: auto 1fr auto;
   grid-template-areas: "title" "chat" "input";
+  row-gap: 4px;
   padding: 8px;
+  overflow-y: hidden;
 }
 
 .chat-title {
@@ -148,17 +157,52 @@ nav button:hover {
   flex-direction: row;
   padding-top: 8vh;
   justify-content: space-around;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .chat-input-area {
   grid-area: input;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
+  padding-right: 15%;
+  padding-left: 15%;
 }
 
-.chat-input-area span {
-  width: 70%;
+.chat-input-area div {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  row-gap: 8px;
+  border-radius: 32px;
+  border: 1px darkblue solid;
+  resize: none;
+  padding: 8px;
+  box-shadow: 5px 5px 2px lightblue;
+}
+
+.chat-bubble-area {
+  display: flex;
+  flex-direction: column;
+  row-gap: 16px;
+  overflow-y: auto;
+}
+
+.chat-bubble {
   display: grid;
-  grid-template-columns: 1fr auto;
+  font-size: 0.8rem;
+  grid-template-row: 1fr auto;
+  max-width: 70%;
+  border-radius: 4px;
+  padding-top: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-bottom: 8px;
+}
+
+.chat-bubble-user {
+  background-color: lightgreen;
+  margin-left: auto;
+}
+
+.chat-bubble-assistant {
+  background-color: aliceblue;
 }
