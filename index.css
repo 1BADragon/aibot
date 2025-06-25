@@ -134,8 +134,9 @@ nav button:hover {
 }
 
 #main-area {
-  height: 100%;
+  height: calc(100% - 16px);
   display: grid;
+  grid-area: body;
   grid-template-rows: auto 1fr auto;
   grid-template-areas: "title" "chat" "input";
   row-gap: 4px;
@@ -157,7 +158,7 @@ nav button:hover {
   flex-direction: row;
   padding-top: 8vh;
   justify-content: space-around;
-  max-height: 100%;
+  flex: 1 1 auto;
   overflow-y: auto;
 }
 
@@ -183,26 +184,27 @@ nav button:hover {
   display: flex;
   flex-direction: column;
   row-gap: 16px;
-  overflow-y: auto;
 }
 
 .chat-bubble {
   display: grid;
   font-size: 0.8rem;
-  grid-template-row: 1fr auto;
+  grid-template-rows: auto auto;
+  overflow-x: auto;
+  overflow-y: unset;
   max-width: 70%;
-  border-radius: 4px;
-  padding-top: 8px;
-  padding-left: 8px;
-  padding-right: 8px;
-  padding-bottom: 8px;
+  border-radius: 24px;
+  padding: 8px;
+  word-break: break-word;
 }
 
 .chat-bubble-user {
   background-color: lightgreen;
   margin-left: auto;
+  margin-right: 32px;
 }
 
 .chat-bubble-assistant {
   background-color: aliceblue;
+  margin-left: 32px;
 }

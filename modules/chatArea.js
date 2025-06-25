@@ -4,6 +4,7 @@ import {
   EVENT_SESSION_CHANGE,
   EVENT_SESSION_UPDATE,
 } from "./events.js";
+import { LS_MODEL_LAST_SELECTED } from "./localStoragePaths.js";
 import { getModels, sendChat } from "./models.js";
 import { renderNode } from "./render.js";
 import { activeSession, appendToLatestChat } from "./sessionControl.js";
@@ -58,6 +59,8 @@ function renderTitle(session) {
   modelSelect.onchange = (ev) => {
     session.model = ev.target.value;
 
+    localStorage.setItem(LS_MODEL_LAST_SELECTED, ev.target.value);
+
     const e = new CustomEvent(EVENT_CHAT_AREA_UPDATE);
     document.dispatchEvent(e);
   };
@@ -90,18 +93,27 @@ function renderInputArea() {
     inner.style.outline = "none";
   };
 
+  const doSubmitInput = async () => {
+    const userInput = textarea.value;
+    textarea.value = "";
+
+    for await (const fragment of sendChat(activeSession().model, userInput)) {
+      appendToLatestChat(fragment.message.content, fragment.message.role);
+    }
+  };
+
+  textarea.onkeydown = (ev) => {
+    if (ev.key === "Enter" && ev.shiftKey) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      doSubmitInput();
+    }
+  };
+
   const submitButton = document.createElement("button");
   submitButton.style.marginLeft = "auto";
   submitButton.innerText = "Submit";
-  submitButton.onclick = async () => {
-    for await (const fragment of sendChat(
-      activeSession().model,
-      textarea.value,
-    )) {
-      appendToLatestChat(fragment.message.content, fragment.message.role);
-    }
-    textarea.value = "";
-  };
+  submitButton.onclick = doSubmitInput;
 
   inner.replaceChildren(textarea, submitButton);
 
@@ -124,18 +136,27 @@ function createBubbleFromMessage(msg) {
 }
 
 function renderChat(session) {
+  const outer = document.createElement("div");
+
+  outer.id = "chat-bubble-scroll-area";
+  outer.style.overflowX = "hidden";
+  outer.style.overflowY = "auto";
+  outer.style.height = "100%";
+
   const p = document.createElement("div");
   p.className = "chat-bubble-area";
   p.id = "chat-bubble-area";
 
   const bubbles = _(session.messages).map(createBubbleFromMessage).value();
-
   p.replaceChildren(...bubbles);
+
   requestAnimationFrame(() => {
-    p.scrollTo({ top: p.scrollHeight, behavior: "smooth" });
+    outer.scrollTo({ top: outer.scrollHeight, behavior: "smooth" });
   });
 
-  return p;
+  outer.replaceChildren(p);
+
+  return outer;
 }
 
 function renderChatArea() {
@@ -158,10 +179,6 @@ function renderUpdatedBubble() {
   const current = s.messages[s.messages.length - 1];
 
   const bubbleArea = document.getElementById("chat-bubble-area");
-  const threshold = 20; // px tolerance
-  const doAutoScroll =
-    bubbleArea.scrollHeight - bubbleArea.scrollTop - bubbleArea.clientHeight <
-    threshold;
 
   const bubble = document.getElementById(`chat-${current.uuid}`);
   if (bubble) {
@@ -171,9 +188,19 @@ function renderUpdatedBubble() {
     bubbleArea.appendChild(b);
   }
 
+  const threshold = 20; // px tolerance
+  const bubbleScrollArea = document.getElementById("chat-bubble-scroll-area");
+  const doAutoScroll =
+    bubbleScrollArea.scrollHeight -
+      bubbleScrollArea.scrollTop -
+      bubbleScrollArea.clientHeight <
+    threshold;
   if (doAutoScroll) {
     requestAnimationFrame(() => {
-      bubbleArea.scrollTo({ top: bubbleArea.scrollHeight, behavior: "smooth" });
+      bubbleScrollArea.scrollTo({
+        top: bubbleScrollArea.scrollHeight,
+        behavior: "smooth",
+      });
     });
   }
 }

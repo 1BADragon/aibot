@@ -24,7 +24,11 @@ import {
   EVENT_SESSION_NEW,
   EVENT_SESSION_UPDATE,
 } from "./events.js";
-import { LS_SESSION_ACTIVE, LS_SESSION_STORE } from "./localStoragePaths.js";
+import {
+  LS_MODEL_LAST_SELECTED,
+  LS_SESSION_ACTIVE,
+  LS_SESSION_STORE,
+} from "./localStoragePaths.js";
 import { getModels } from "./models.js";
 
 var sessionData = JSON.parse(localStorage.getItem(LS_SESSION_STORE) ?? "{}");
@@ -72,7 +76,7 @@ export function newSession() {
   const newSession = {
     uuid: crypto.randomUUID(),
     name: null,
-    model: getModels()[0].name,
+    model: localStorage.getItem(LS_MODEL_LAST_SELECTED) ?? getModels()[0].name,
     createdOn: new Date(),
     messages: [],
   };
